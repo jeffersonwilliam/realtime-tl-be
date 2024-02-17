@@ -2,7 +2,6 @@ package main
 
 import (
 	// "github.com/gin-gonic/gin"
-	"github.com/sb/simple-backend/api/routes"
 )
 
 func main() {
@@ -14,5 +13,5 @@ func main() {
 	// })
 	// r.Run("0.0.0.0:9090") // listen and serve on 0.0.0.0:8080
 
-	routes.InitializeRouter()
+	// routes.InitializeRouter()
 }
