@@ -9,10 +9,12 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/realtime-tl-be/api/rtserver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	
 )
 
 type Employee struct {
@@ -31,7 +33,7 @@ const (
 
 var db *mongo.Database
 
-func InitializeRouter() {
+func InitializeRouter(port string) {
 	r := gin.Default()
 
 	// to allow for CORS from all origins
@@ -43,11 +45,12 @@ func InitializeRouter() {
 	r.POST("/api/employees", createEmployee)
 	r.PUT("/api/employees/:id", updateEmployee)
 	r.DELETE("/api/employees/:id", deleteEmployee)
+	r.GET("/api/socket/ws", rtserver.HandleCommunication)
 
 	initClient()
 
 	// run server
-	r.Run(":8000")
+	r.Run(":" + port)
 
 }
 
@@ -56,7 +59,6 @@ func initClient() {
 		println("No .env file found")
 	}
 	uri := os.Getenv("MONGODB_URI")
-	println("uri inspect", uri)
 	if uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
@@ -66,15 +68,7 @@ func initClient() {
 		log.Fatal("Error connecting to MongoDB:", err)
 	}
 
-	println("Just some random statement")
-
-	// println("client", client.Database(Dbname))
-
 	db = client.Database(Dbname)
-
-	// println("Connected to database:", db.Name())
-
-	println("Connected to database:", db.Name())
 
 }
 
@@ -103,8 +97,6 @@ func getEmployees(c *gin.Context) {
 			log.Fatal(err)
 		}
 		employees = append(employees, employee)
-
-		println("employees", employees)
 	}
 	collection.Close(context.Background())
 
@@ -120,8 +112,6 @@ func getEmployeeById(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, employee)
-
-	// c.JSON(http.StatusOK, "Hello")
 }
 
 func createEmployee(c *gin.Context) {
